@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Add your advanced CSS styles here */
+    .form-container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f2f2f2;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-container label,
+    .form-container input,
+    .form-container select {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .form-container input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+    }
+
+    .form-container select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+    }
+
+    .form-container button[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .form-container button[type="submit"]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Create Dream Team</h2>
+    <form id="dreamTeamForm">
+      <label for="batsman">Select Batsman:</label>
+      <select id="batsman" name="batsman">
+        <option value="player1">Player 1</option>
+        <option value="player2">Player 2</option>
+        <option value="player3">Player 3</option>
+      </select>
+
+      <label for="bowler">Select Bowler:</label>
+      <select id="bowler" name="bowler">
+        <option value="player4">Player 4</option>
+        <option value="player5">Player 5</option>
+        <option value="player6">Player 6</option>
+      </select>
+
+      <label for="runsByBatsman">Runs Scored by Batsman:</label>
+      <input type="number" id="runsByBatsman" name="runsByBatsman">
+
+      <label for="runsByBowler">Runs Given by Bowler:</label>
+      <input type="number" id="runsByBowler" name="runsByBowler">
+
+      <label for="extrasByBowler">Extras Given by Bowler:</label>
+      <input type="number" id="extrasByBowler" name="extrasByBowler">
+
+      <label for="wicketByBowler">Bowler Took a Wicket:</label>
+      <input type="checkbox" id="wicketByBowler" name="wicketByBowler">
+
+      <button type="submit" onclick="sendObject()">Submit</button>
+    
+    </form>
+  </div>
+
+  <script>
+     const kafka = new Kafka({
+      brokers: ['your-kafka-broker:9092'],
+    });
+
+    // Create a Kafka producer
+    const producer = kafka.producer();
+
+    // Event listener for form submission
+    document.getElementById("dreamTeamForm").addEventListener("submit", async function(event) {
+      event.preventDefault(); // Prevent form submission
+
+      // Get the form values
+      var batsman = document.getElementById("batsman").value;
+      var bowler = document.getElementById("bowler").value;
+      var runsByBatsman = parseInt(document.getElementById("runsByBatsman").value);
+      var runsByBowler = parseInt(document.getElementById("runsByBowler").value);
+      var extrasByBowler = parseInt(document.getElementById("extrasByBowler").value);
+      var wicketByBowler = document.getElementById("wicketByBowler").checked;
+
+      // Calculate points for the batsman and bowler
+      var batsmanPoints = runsByBatsman * 1;
+      if (runsByBatsman == 4) {
+        batsmanPoints = 6;
+      }
+      if (runsByBatsman == 6) {
+        batsmanPoints = 9;
+      }
+      var bowlerPoints = 0;
+      if (wicketByBowler) {
+        bowlerPoints += 25;
+      }
+      bowlerPoints -= extrasByBowler * 0.25;
+
+      // Create a JavaScript object with the player names as keys and their points as values
+      var pointsData = {
+        batsman: batsmanPoints,
+        bowler: bowlerPoints,
+      };
+      function sendObject(pointsData) {
+     
+      var jsonData = JSON.stringify(pointsData);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/convert', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(jsonData);
+    }
+    sendObject(pointsData) ;
+      document.getElementById("dreamTeamForm").reset();
+    });
+    
+  </script>
+</body>
+</html>
+
+</body>
+</html>
